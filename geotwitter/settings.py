@@ -59,11 +59,11 @@ MIDDLEWARE_CLASSES = (
     'ragendja.middleware.ErrorMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     # Django authentication
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    #'django.contrib.auth.middleware.AuthenticationMiddleware',
     # Google authentication
     #'ragendja.auth.middleware.GoogleAuthenticationMiddleware',
     # Hybrid Django/Google authentication
-    #'ragendja.auth.middleware.HybridAuthenticationMiddleware',
+    'ragendja.auth.middleware.HybridAuthenticationMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'ragendja.sites.dynamicsite.DynamicSiteIDMiddleware',
@@ -75,7 +75,7 @@ MIDDLEWARE_CLASSES = (
 #AUTH_USER_MODULE = 'ragendja.auth.google_models'
 #AUTH_ADMIN_MODULE = 'ragendja.auth.google_admin'
 # Hybrid Django/Google authentication
-#AUTH_USER_MODULE = 'ragendja.auth.hybrid_models'
+AUTH_USER_MODULE = 'ragendja.auth.hybrid_models'
 
 LOGIN_URL = '/account/login/'
 LOGOUT_URL = '/account/logout/'
@@ -102,6 +102,8 @@ INSTALLED_APPS = (
     'appenginepatcher',
     'ragendja',
     'myapp',
+    'upload',
+    'utility',
     'registration',
     'mediautils',
 )
