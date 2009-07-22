@@ -135,5 +135,8 @@ DATABASE_OPTIONS = {
     # Change domain (default: <remoteid>.appspot.com)
     #'remote_host': 'bla.com',
 }
+from appenginepatcher import on_production_server
+if not on_production_server:
+    CACHE_BACKEND = 'dummy:///'
 
 from ragendja.settings_post import *
