@@ -127,7 +127,19 @@ class FileTest(unittest.TestCase):
         self.assertTrue('testtxt.txt' not in returnResponse.content)
         
     def test_part_upload(self):
-        pass
+        file=open(ROOT_PATH+'/daodao2.JPG')
+        part1=file.read(3662)
+        file.seek(3663)
+        part2=file.read()
+        response = self.client.post('/album/', {'file': part1},Range='bytes=%s-%s' % (0, 3662))
+        response = self.client.post('/album/', {'file': part2},Range='bytes=%s-%s' % (3663, 5662))
+        file.close()
+        self.failUnlessEqual(response.status_code, 302)
+        
+        returnResponse = self.client.get('/album/')
+        self.assertTrue('daodao2.JPG' in returnResponse.content)
+        userFile=UserFile.all().filter("name =","daodao2.JPG").get()
+        self.assertTrue(userFile is not None)
 
     def tearDown(self):
         #For that we are using a temporary datastore stub located in the memory,we don't have to clean up.

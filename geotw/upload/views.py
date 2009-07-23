@@ -37,7 +37,7 @@ def part_upload(request):
         if 'file' in request.FILES:
             file = request.FILES['file']
             userfile = UserFile.get_or_insert(  
-                                    keyname=key,
+                                    keyname=file.name,
                                     mimetype=request.META['CONTENT_TYPE'],
                                     author = users.get_current_user(),
                                     size = file.size,
@@ -51,6 +51,7 @@ def part_upload(request):
                     pos_start,pos_end=getRange(request.META["Range"])
                     emptyfile.seek(pos_start, 0)
                     emptyfile.write(db.Blob(file.read()))
+                    emptyfile.seek(0, 0)
                 filebin = FileBin(userfile=userfile, bin=db.Blob(emptyfile.read()))
                 emptyfile.close()
             else:
@@ -59,7 +60,7 @@ def part_upload(request):
                     s = StringIO.StringIO(filebin.bin)
                     s.seek(pos_start, 0)
                     s.write(file)
-                    s.seek(0)
+                    s.seek(0, 0)
                     filebin.bin=db.Blob(s.read())
                     filebin.put()
                     s.close()
