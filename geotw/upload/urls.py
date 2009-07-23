@@ -15,7 +15,7 @@ urlpatterns = patterns('upload.views',
     url(r'^icon/(?P<key>\w+)/$','show_icon',name="show_icon"),
     (r'^PikaChoose/$',direct_to_template, {'template': 'upload/PikaChoose.html','extra_context':{'filelist':UserFile.all().order('-creationDate'),'form':FileForm(),},}),
     (r'^mbGallery/$',direct_to_template, {'template': 'upload/mbGallery.html','extra_context':{'filelist':UserFile.all().order('-creationDate'),'form':FileForm(),},}),
-
+    (r'^part_upload/$','part_upload'),
 )
 
 

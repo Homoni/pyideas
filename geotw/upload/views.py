@@ -34,7 +34,9 @@ class EmailForm(Form):
 
 def part_upload(request):
     if request.method == 'POST':
+        
         if 'file' in request.FILES:
+            logging.info('def part_upload(request):-------')
             file = request.FILES['file']
             userfile = UserFile.get_or_insert(  
                                     keyname=file.name,
@@ -43,7 +45,8 @@ def part_upload(request):
                                     size = file.size,
                                     name=file.name,
                                     comment=request.REQUEST.get('comment',''))
-            filebin=file.filebin_set.get()
+            logging.info('userfile-------%s'%userfile)
+            filebin=userfile.filebin_set.get()
             if filebin is None:
                 emptyfile = StringIO.StringIO()
                 emptyfile.truncate(file.size)
@@ -72,7 +75,7 @@ def part_upload(request):
 #                   'Range':'bytes=%s-%s' % (self.pos_start, self.pos_end)
 #                }
             
-    return HttpResponse("done! part%s"%partNO)
+    return HttpResponse("done! part")
 
 def getRange(rangestr):
     regex='\d+'
