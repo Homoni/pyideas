@@ -125,6 +125,9 @@ class FileTest(unittest.TestCase):
         self.assertTrue(FileBin.get(fileBinKey) is None)
         returnResponse = self.client.get('/album/')
         self.assertTrue('testtxt.txt' not in returnResponse.content)
+        
+    def test_part_upload(self):
+        pass
 
     def tearDown(self):
         #For that we are using a temporary datastore stub located in the memory,we don't have to clean up.

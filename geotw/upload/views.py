@@ -32,7 +32,7 @@ class FileForm(ModelForm):
 class EmailForm(Form):
     email=EmailField(required=True)
 
-def partUpload(request,key,partNO):
+def part_upload(request):
     if request.method == 'POST':
         if 'file' in request.FILES:
             file = request.FILES['file']
@@ -45,18 +45,27 @@ def partUpload(request,key,partNO):
                                     comment=request.REQUEST.get('comment',''))
             filebin=file.filebin_set.get()
             if filebin is None:
-                filebin = FileBin(userfile=userfile, bin=db.Blob(file.read()))
-            if request.META.has_key("Range"):
-                pos_start=111
-                pos_end=1111
-                s = StringIO.StringIO(filebin.bin)
-                s.seek(pos_start)
-                s.write(file)
-                filebin.bin=db.Blob(s.read())
-                filebin.put()
-                s.close()
+                emptyfile = StringIO.StringIO()
+                emptyfile.truncate(size)
+                if request.META.has_key("Range"):
+                    pos_start=111
+                    emptyfile.seek(pos_start, 0)
+                    emptyfile.write(db.Blob(file.read()))
+                filebin = FileBin(userfile=userfile, bin=db.Blob(emptyfile.read()))
+                emptyfile.close()
             else:
-                return HttpResponse("err")
+                if request.META.has_key("Range"):
+                    pos_start=111
+                    pos_end=1111
+                    s = StringIO.StringIO(filebin.bin)
+                    s.seek(pos_start, 0)
+                    s.write(file)
+                    s.seek(0)
+                    filebin.bin=db.Blob(s.read())
+                    filebin.put()
+                    s.close()
+                else:
+                    return HttpResponse("err")
 #                self.resource.F.seek(self.downloaded+self.NO*self.length, 0)
 #                self.resource.F.write(data)
 #                headers={
