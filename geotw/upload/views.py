@@ -58,7 +58,7 @@ def part_upload(request):
                     
                     emptyfile.write((urllib.unquote(smart_str(file))))
                     emptyfile.seek(0, 0)
-                    logging.info('part_upload------len(emptyfile)=%s'%len(emptyfile.read()))
+#                    logging.info('part_upload------len(emptyfile)=%s'%len(emptyfile.read()))
                 filebin = FileBin(userfile=userfile, bin=db.Blob(emptyfile.read()))
                 filebin.put()
                 emptyfile.close()
@@ -69,6 +69,8 @@ def part_upload(request):
                     s.seek(int(pos_start), 0)
                     s.write((urllib.unquote(smart_str(file))))
                     s.seek(0, 0)
+#                    logging.info('part_upload------len(s)=%s'%len(s.read()))
+
                     filebin.bin=db.Blob(s.read())
                     filebin.put()
                     s.close()

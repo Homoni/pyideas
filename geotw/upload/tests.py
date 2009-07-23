@@ -20,6 +20,11 @@ from django.test.client import Client
 from google.appengine.api import users
 import logging 
 from models import *
+import urllib
+import urllib2
+import mimetools, mimetypes
+import os, stat
+
 if not on_production_server:
     from google.appengine.api.images import images_stub
 
@@ -125,19 +130,55 @@ class FileTest(unittest.TestCase):
         self.assertTrue(FileBin.get(fileBinKey) is None)
         returnResponse = self.client.get('/upload/album/')
         self.assertTrue('testtxt.txt' not in returnResponse.content)
+     
+    def multipart_encode(self,vars, files, boundary = None, buffer = None,pos_start=0,pos_end=0):
+        if boundary is None:
+            boundary = mimetools.choose_boundary()
+        if buffer is None:
+            buffer = ''
+        for(key, value) in vars:
+            buffer += '--%s\r\n' % boundary
+            buffer += 'Content-Disposition: form-data; name="%s"' % key
+            buffer += '\r\n\r\n' + value + '\r\n'
+        for(key, fd) in files:
+            file_size = os.fstat(fd.fileno())[stat.ST_SIZE]
+            filename = os.path.basename(fd.name)
+            contenttype = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+            buffer += '--%s\r\n' % boundary
+            buffer += 'Content-Disposition: form-data; name="%s"; filename="%s"\r\n' % (key, filename)
+            buffer += 'Content-Type: %s\r\n' % contenttype
+            # buffer += 'Content-Length: %s\r\n' % file_size
+            if pos_start:
+                fd.seek(pos_start)
+            else:
+                fd.seek(0)
+            if pos_end>pos_start:
+                buffer += '\r\n' + fd.read(pos_end-pos_start) + '\r\n'
+            else:
+                buffer += '\r\n' + fd.read() + '\r\n'
+        buffer += '--%s--\r\n\r\n' % boundary
+        return boundary, buffer
         
     def test_part_upload(self):
         file=open(ROOT_PATH+'/daodao2.JPG',"rb")
-        file.seek(0,0)
-        part1=file.read(3662)
-        file.seek(3662,0)
-        part2=file.read()
+#        file.seek(0,0)
+#        part1=file.read(3662)
+#        file.seek(3662,0)
+#        part2=file.read()
         size=os.path.getsize(ROOT_PATH+'/daodao2.JPG')
         logging.info("-------------------------%s"%size)
+        
+        boundary, part1=self.multipart_encode(vars=[('size',str(size)),],files=[('file',file),],pos_start=0,pos_end=3662)
+        contenttype = 'multipart/form-data; boundary=%s' % boundary
+        
+        
         logging.info('------len(part1)=%s'%len(part1))
+        response = self.client.post(path='/upload/album/part_upload/',content_type=contenttype, data={'file': part1},HTTP_RANGE='bytes=%s-%s' % (0, 3662))
+        
+        boundary2, part2=self.multipart_encode(vars={'size':size},files={'file':file},pos_start=0,pos_end=3662)
+        contenttype2 = 'multipart/form-data; boundary=%s' % boundary2
         logging.info('------len(part2)=%s'%len(part2))
-        response = self.client.post('/upload/album/part_upload/', {'file': part1},HTTP_RANGE='bytes=%s-%s' % (0, 3662))
-        response = self.client.post('/upload/album/part_upload/', {'file': part2},HTTP_RANGE='bytes=%s-%s' % (3662, size))
+        response = self.client.post(path='/upload/album/part_upload/',content_type=contenttype2, data={'file': part2},HTTP_RANGE='bytes=%s-%s' % (3662, size))
         
 #        self.failUnlessEqual(response.status_code, 302)
         
