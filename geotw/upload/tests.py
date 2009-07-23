@@ -127,15 +127,18 @@ class FileTest(unittest.TestCase):
         self.assertTrue('testtxt.txt' not in returnResponse.content)
         
     def test_part_upload(self):
-        file=open(ROOT_PATH+'/daodao2.JPG')
+        file=open(ROOT_PATH+'/daodao2.JPG',"rb")
+        file.seek(0,0)
         part1=file.read(3662)
-        file.seek(3663)
+        file.seek(3662,0)
         part2=file.read()
         size=os.path.getsize(ROOT_PATH+'/daodao2.JPG')
         logging.info("-------------------------%s"%size)
+        logging.info('------len(part1)=%s'%len(part1))
+        logging.info('------len(part2)=%s'%len(part2))
         response = self.client.post('/upload/album/part_upload/', {'file': part1},HTTP_RANGE='bytes=%s-%s' % (0, 3662))
-        response = self.client.post('/upload/album/part_upload/', {'file': part2},HTTP_RANGE='bytes=%s-%s' % (3663, size))
-        file.close()
+        response = self.client.post('/upload/album/part_upload/', {'file': part2},HTTP_RANGE='bytes=%s-%s' % (3662, size))
+        
 #        self.failUnlessEqual(response.status_code, 302)
         
         returnResponse = self.client.get('/upload/album/')
@@ -143,6 +146,12 @@ class FileTest(unittest.TestCase):
         userFile=UserFile.all().filter("name =","daodao2.JPG").get()
         self.assertTrue(userFile is not None)
         self.assertTrue(userFile.size==size)
+        file.seek(0,0)
+        logging.info('------len(bin)=%s'%len(userFile.filebin_set.get().bin))
+        logging.info('------len(file)=%s'%len(file.read()))
+        
+        self.assertTrue(userFile.filebin_set.get().bin==file.read())
+        file.close()
 
     def tearDown(self):
         #For that we are using a temporary datastore stub located in the memory,we don't have to clean up.

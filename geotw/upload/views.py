@@ -35,34 +35,39 @@ class EmailForm(Form):
 def part_upload(request):
     if request.method == 'POST':
         
-        if 'file' in request.FILES:
+        if 'file' in request.REQUEST:
             logging.info('def part_upload(request):-------')
-            file = request.FILES['file']
+            file = request.REQUEST['file']
+            logging.info('part_upload------len(part)=%s'%len(file))
+            size=int(request.REQUEST.get('size','5662'))
             userfile = UserFile.get_or_insert(  
-                                    keyname=file.name,
+                                    key_name=request.REQUEST.get('name','daodao2.JPG'),
                                     mimetype=request.META['CONTENT_TYPE'],
                                     author = users.get_current_user(),
-                                    size = file.size,
-                                    name=file.name,
+                                    size = size,
+                                    name=request.REQUEST.get('name','daodao2.JPG'),
                                     comment=request.REQUEST.get('comment',''))
             logging.info('userfile-------%s'%userfile)
             filebin=userfile.filebin_set.get()
             if filebin is None:
                 emptyfile = StringIO.StringIO()
-                emptyfile.truncate(file.size)
+                emptyfile.truncate(size)
                 if request.META.has_key("HTTP_RANGE"):
                     pos_start,pos_end=getRange(request.META["HTTP_RANGE"])
-                    emptyfile.seek(pos_start, 0)
-                    emptyfile.write(db.Blob(file.read()))
+                    emptyfile.seek(int(pos_start), 0)
+                    
+                    emptyfile.write((urllib.unquote(smart_str(file))))
                     emptyfile.seek(0, 0)
+                    logging.info('part_upload------len(emptyfile)=%s'%len(emptyfile.read()))
                 filebin = FileBin(userfile=userfile, bin=db.Blob(emptyfile.read()))
+                filebin.put()
                 emptyfile.close()
             else:
                 if request.META.has_key("HTTP_RANGE"):
                     pos_start,pos_end=getRange(request.META["HTTP_RANGE"])
                     s = StringIO.StringIO(filebin.bin)
-                    s.seek(pos_start, 0)
-                    s.write(file)
+                    s.seek(int(pos_start), 0)
+                    s.write((urllib.unquote(smart_str(file))))
                     s.seek(0, 0)
                     filebin.bin=db.Blob(s.read())
                     filebin.put()
@@ -81,6 +86,7 @@ def getRange(rangestr):
     regex='\d+'
     reobj = re.compile(regex)
     result = reobj.findall(rangestr)
+    logging.info("getRange---------%s"%result)
     return result[0],result[1]
                    
 
