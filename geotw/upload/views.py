@@ -19,7 +19,7 @@ from ragendja.dbutils import get_object_or_404
 from django.contrib.sites.models import Site
 from mimetypes import guess_type
 FILE_MAX=100
-import sys
+import sys,re
 from django.conf import settings
 import StringIO
 
@@ -46,17 +46,16 @@ def part_upload(request):
             filebin=file.filebin_set.get()
             if filebin is None:
                 emptyfile = StringIO.StringIO()
-                emptyfile.truncate(size)
+                emptyfile.truncate(file.size)
                 if request.META.has_key("Range"):
-                    pos_start=111
+                    pos_start,pos_end=getRange(request.META["Range"])
                     emptyfile.seek(pos_start, 0)
                     emptyfile.write(db.Blob(file.read()))
                 filebin = FileBin(userfile=userfile, bin=db.Blob(emptyfile.read()))
                 emptyfile.close()
             else:
                 if request.META.has_key("Range"):
-                    pos_start=111
-                    pos_end=1111
+                    pos_start,pos_end=getRange(request.META["Range"])
                     s = StringIO.StringIO(filebin.bin)
                     s.seek(pos_start, 0)
                     s.write(file)
@@ -73,6 +72,13 @@ def part_upload(request):
 #                }
             
     return HttpResponse("done! part%s"%partNO)
+
+def getRange(rangestr):
+    regex='\d+'
+    reobj = re.compile(regex)
+    result = reobj.findall(rangestr)
+    return result[0],result[1]
+                   
 
 @cache_control(must_revalidate=True)
 @vary_on_headers('User-Agent','Cookie')
