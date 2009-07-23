@@ -131,8 +131,8 @@ class FileTest(unittest.TestCase):
         part1=file.read(3662)
         file.seek(3663)
         part2=file.read()
-        response = self.client.post('/upload/album/', {'file': part1},Range='bytes=%s-%s' % (0, 3662))
-        response = self.client.post('/upload/album/', {'file': part2},Range='bytes=%s-%s' % (3663, 5662))
+        response = self.client.post('/upload/album/', {'file': part1},HTTP_RANGE='bytes=%s-%s' % (0, 3662))
+        response = self.client.post('/upload/album/', {'file': part2},HTTP_RANGE='bytes=%s-%s' % (3663, 5662))
         file.close()
         self.failUnlessEqual(response.status_code, 302)
         

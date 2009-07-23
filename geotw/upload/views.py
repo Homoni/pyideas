@@ -47,16 +47,16 @@ def part_upload(request):
             if filebin is None:
                 emptyfile = StringIO.StringIO()
                 emptyfile.truncate(file.size)
-                if request.META.has_key("Range"):
-                    pos_start,pos_end=getRange(request.META["Range"])
+                if request.META.has_key("HTTP_RANGE"):
+                    pos_start,pos_end=getRange(request.META["HTTP_RANGE"])
                     emptyfile.seek(pos_start, 0)
                     emptyfile.write(db.Blob(file.read()))
                     emptyfile.seek(0, 0)
                 filebin = FileBin(userfile=userfile, bin=db.Blob(emptyfile.read()))
                 emptyfile.close()
             else:
-                if request.META.has_key("Range"):
-                    pos_start,pos_end=getRange(request.META["Range"])
+                if request.META.has_key("HTTP_RANGE"):
+                    pos_start,pos_end=getRange(request.META["HTTP_RANGE"])
                     s = StringIO.StringIO(filebin.bin)
                     s.seek(pos_start, 0)
                     s.write(file)
