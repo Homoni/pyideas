@@ -1,8 +1,8 @@
 from ragendja.settings_post import settings
-settings.add_app_media('combined-%(LANGUAGE_CODE)s.js',
+settings.add_app_media('combined-upload-%(LANGUAGE_CODE)s.js',
     'upload/pikachoose.js',
 )
-settings.add_app_media('combined-%(LANGUAGE_DIR)s.css',
+settings.add_app_media('combined-upload-%(LANGUAGE_DIR)s.css',
     'upload/bottom.css',
 )
 #settings.add_app_media('1.gif',
