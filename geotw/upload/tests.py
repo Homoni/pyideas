@@ -80,11 +80,11 @@ class FileTest(unittest.TestCase):
     def test_add_file(self):
         file=open(ROOT_PATH+'/testtxt.txt')
         
-        response = self.client.post('/album/', {'file': file})
+        response = self.client.post('/upload/album/', {'file': file})
         file.close()
         self.failUnlessEqual(response.status_code, 302)
         
-        returnResponse = self.client.get('/album/')
+        returnResponse = self.client.get('/upload/album/')
         self.assertTrue('testtxt.txt' in returnResponse.content)
         userFile=UserFile.all().filter("name =","testtxt.txt").get()
         self.assertTrue(userFile is not None)
@@ -93,18 +93,18 @@ class FileTest(unittest.TestCase):
         self.test_add_file()
         userFile=UserFile.all().filter("name =","testtxt.txt").get()
         bin=userFile.filebin_set.get()
-        returnResponse = self.client.get('/album/download/%s'%userFile.key())
+        returnResponse = self.client.get('/upload/album/download/%s'%userFile.key())
         self.assertTrue(returnResponse['Content-Type']=='application/octet-stream')
         self.assertTrue(returnResponse.content==bin.bin)
         
     def test_show_picture(self):    
         file=open(ROOT_PATH+'/daodao2.JPG')
         
-        response = self.client.post('/album/', {'file': file})
+        response = self.client.post('/upload/album/', {'file': file})
         file.close()
         self.failUnlessEqual(response.status_code, 302)
         
-        returnResponse = self.client.get('/album/')
+        returnResponse = self.client.get('/upload/album/')
         self.assertTrue('daodao2.JPG' in returnResponse.content)
         userFile=UserFile.all().filter("name =","daodao2.JPG").get()
         self.assertTrue(userFile is not None)
@@ -112,7 +112,7 @@ class FileTest(unittest.TestCase):
         self.test_add_file()
         userFile=UserFile.all().filter("name =","daodao2.JPG").get()
         bin=userFile.filebin_set.get()
-        returnResponse = self.client.get('/album/%s'%userFile.key())
+        returnResponse = self.client.get('/upload/album/%s'%userFile.key())
         self.assertTrue(returnResponse['Content-Type']=='image/JPEG')
         self.assertTrue(returnResponse.content==bin.bin)
         
@@ -120,10 +120,10 @@ class FileTest(unittest.TestCase):
         self.test_add_file()
         userFile=UserFile.all().filter("name =","testtxt.txt").get()
         fileBinKey=userFile.filebin_set.get().key()
-        response = self.client.get('/album/delete/%s'%userFile.key())      
+        response = self.client.get('/upload/album/delete/%s'%userFile.key())      
         self.assertTrue(UserFile.all().filter("name =",'testtxt.txt').get() is None)
         self.assertTrue(FileBin.get(fileBinKey) is None)
-        returnResponse = self.client.get('/album/')
+        returnResponse = self.client.get('/upload/album/')
         self.assertTrue('testtxt.txt' not in returnResponse.content)
         
     def test_part_upload(self):
@@ -131,12 +131,12 @@ class FileTest(unittest.TestCase):
         part1=file.read(3662)
         file.seek(3663)
         part2=file.read()
-        response = self.client.post('/album/', {'file': part1},Range='bytes=%s-%s' % (0, 3662))
-        response = self.client.post('/album/', {'file': part2},Range='bytes=%s-%s' % (3663, 5662))
+        response = self.client.post('/upload/album/', {'file': part1},Range='bytes=%s-%s' % (0, 3662))
+        response = self.client.post('/upload/album/', {'file': part2},Range='bytes=%s-%s' % (3663, 5662))
         file.close()
         self.failUnlessEqual(response.status_code, 302)
         
-        returnResponse = self.client.get('/album/')
+        returnResponse = self.client.get('/upload/album/')
         self.assertTrue('daodao2.JPG' in returnResponse.content)
         userFile=UserFile.all().filter("name =","daodao2.JPG").get()
         self.assertTrue(userFile is not None)
