@@ -41,11 +41,11 @@ def part_upload(request):
             logging.info('part_upload------len(part)=%s'%len(file))
             size=int(request.REQUEST.get('size','5662'))
             userfile = UserFile.get_or_insert(  
-                                    key_name=request.REQUEST.get('name','daodao2.JPG'),
+                                    key_name=file.name,
                                     mimetype=request.META['CONTENT_TYPE'],
                                     author = users.get_current_user(),
                                     size = size,
-                                    name=request.REQUEST.get('name','daodao2.JPG'),
+                                    name=file.name,
                                     comment=request.REQUEST.get('comment',''))
             logging.info('userfile-------%s'%userfile)
             filebin=userfile.filebin_set.get()
