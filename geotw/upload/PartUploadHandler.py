@@ -41,7 +41,7 @@ Further Example:
 import urllib
 import urllib2
 import mimetools, mimetypes
-import os, stat
+import os, stat,logging,re
 
 class Callable:
     def __init__(self, anycallable):
@@ -50,6 +50,13 @@ class Callable:
 # Controls how sequences are uncoded. If true, elements may be given multiple values by
 #  assigning a sequence.
 doseq = 1
+
+def getRange(rangestr):
+    regex='\d+'
+    reobj = re.compile(regex)
+    result = reobj.findall(rangestr)
+    logging.info("getRange---------%s"%result)
+    return int(result[0]),int(result[1])
 
 class MultipartPostHandler(urllib2.BaseHandler):
     handler_order = urllib2.HTTPHandler.handler_order - 10 # needs to run first
@@ -72,7 +79,11 @@ class MultipartPostHandler(urllib2.BaseHandler):
             if len(v_files) == 0:
                 data = urllib.urlencode(v_vars, doseq)
             else:
-                boundary, data = self.multipart_encode(v_vars, v_files)
+                if request.has_header('Range'):
+                    pos_start,pos_end=getRange(request.get_header('Range'))
+                    boundary, data = self.multipart_encode(v_vars, v_files,pos_start=pos_start,pos_end=pos_end)
+                else: 
+                    boundary, data = self.multipart_encode(v_vars, v_files)
                 contenttype = 'multipart/form-data; boundary=%s' % boundary
                 if(request.has_header('Content-Type')
                    and request.get_header('Content-Type').find('multipart/form-data') != 0):
@@ -82,7 +93,7 @@ class MultipartPostHandler(urllib2.BaseHandler):
             request.add_data(data)
         return request
 
-    def multipart_encode(vars, files, boundary = None, buffer = None):
+    def multipart_encode(vars, files, boundary = None, buffer = None,pos_start=0,pos_end=0):
         if boundary is None:
             boundary = mimetools.choose_boundary()
         if buffer is None:
@@ -99,8 +110,17 @@ class MultipartPostHandler(urllib2.BaseHandler):
             buffer += 'Content-Disposition: form-data; name="%s"; filename="%s"\r\n' % (key, filename)
             buffer += 'Content-Type: %s\r\n' % contenttype
             # buffer += 'Content-Length: %s\r\n' % file_size
-            fd.seek(0)
-            buffer += '\r\n' + fd.read() + '\r\n'
+#            fd.seek(0)
+#            buffer += '\r\n' + fd.read() + '\r\n'
+            if pos_start:
+                fd.seek(pos_start)
+            else:
+                fd.seek(0)
+            if pos_end>pos_start:
+                buffer += '\r\n' + fd.read(pos_end-pos_start+1) + '\r\n'
+            else:
+                buffer += '\r\n' + fd.read() + '\r\n'
+
         buffer += '--%s--\r\n\r\n' % boundary
         return boundary, buffer
     multipart_encode = Callable(multipart_encode)
