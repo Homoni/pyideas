@@ -35,9 +35,9 @@ class EmailForm(Form):
 def part_upload(request):
     if request.method == 'POST':
         
-        if 'file' in request.REQUEST:
+        if 'file' in request.FILES:
             logging.info('def part_upload(request):-------')
-            file = request.REQUEST['file']
+            file = request.FILES['file']
             logging.info('part_upload------len(part)=%s'%len(file))
             size=int(request.REQUEST.get('size','5662'))
             userfile = UserFile.get_or_insert(  
@@ -55,24 +55,33 @@ def part_upload(request):
                 if request.META.has_key("HTTP_RANGE"):
                     pos_start,pos_end=getRange(request.META["HTTP_RANGE"])
                     emptyfile.seek(int(pos_start), 0)
-                    
-                    emptyfile.write((urllib.unquote(smart_str(file))))
+                    emptyfile.write(file.read())
                     emptyfile.seek(0, 0)
 #                    logging.info('part_upload------len(emptyfile)=%s'%len(emptyfile.read()))
                 filebin = FileBin(userfile=userfile, bin=db.Blob(emptyfile.read()))
                 filebin.put()
+                try:
+                    userfile.icon=images.resize(filebin.bin, width=60)
+                    userfile.put()
+                except:
+                    pass
                 emptyfile.close()
             else:
                 if request.META.has_key("HTTP_RANGE"):
                     pos_start,pos_end=getRange(request.META["HTTP_RANGE"])
                     s = StringIO.StringIO(filebin.bin)
                     s.seek(int(pos_start), 0)
-                    s.write((urllib.unquote(smart_str(file))))
+                    s.write(file.read())
                     s.seek(0, 0)
 #                    logging.info('part_upload------len(s)=%s'%len(s.read()))
 
                     filebin.bin=db.Blob(s.read())
                     filebin.put()
+                    try:
+                        userfile.icon=images.resize(filebin.bin, width=60)
+                        userfile.put()
+                    except:
+                        pass
                     s.close()
                 else:
                     return HttpResponse("err")
