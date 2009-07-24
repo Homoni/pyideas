@@ -9,5 +9,8 @@ size=os.path.getsize('hc20080828_009.jpg')
 req1 = urllib2.Request("http://localhost:8000/upload/album/part_upload/", headers={'Range':'bytes=%s-%s' % (0, 3000)})
 opener.open(req1, data=params)
 
-req2 = urllib2.Request("http://localhost:8000/upload/album/part_upload/", headers={'Range':'bytes=%s-%s' % (3001, size)})
+req2 = urllib2.Request("http://localhost:8000/upload/album/part_upload/", headers={'Range':'bytes=%s-%s' % (3001, 7000)})
 opener.open(req2, data=params)
+
+req3 = urllib2.Request("http://localhost:8000/upload/album/part_upload/", headers={'Range':'bytes=%s-%s' % (7001, size)})
+opener.open(req3, data=params)
