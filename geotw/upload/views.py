@@ -39,7 +39,7 @@ def part_upload(request):
             logging.info('def part_upload(request):-------')
             file = request.FILES['file']
             logging.info('part_upload------len(part)=%s'%len(file))
-            size=int(request.REQUEST.get('size','5662'))
+            size=int(request.REQUEST.get('size',file.size))
             userfile = UserFile.get_or_insert(  
                                     key_name=file.name,
                                     mimetype=request.META['CONTENT_TYPE'],
@@ -47,7 +47,7 @@ def part_upload(request):
                                     size = size,
                                     name=file.name,
                                     comment=request.REQUEST.get('comment',''))
-            logging.info('userfile-------%s'%userfile)
+            logging.info('file.size-------%s'%size)
             filebin=userfile.filebin_set.get()
             if filebin is None:
                 emptyfile = StringIO.StringIO()
@@ -91,7 +91,7 @@ def part_upload(request):
 #                   'Range':'bytes=%s-%s' % (self.pos_start, self.pos_end)
 #                }
             
-    return HttpResponse("done! part")
+    return HttpResponse("done! %s"%request.META["HTTP_RANGE"],status=206)
 
 def getRange(rangestr):
     regex='\d+'
